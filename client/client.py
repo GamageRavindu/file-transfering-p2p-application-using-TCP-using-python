@@ -3,10 +3,12 @@ import os
 import json
 import base64
 
-host = 'localhost'
-port = 12345
+host = '192.168.249.150'
+# host = socket.gethostbyname(socket.gethostname())
 
-save_directory = "client/client_files"
+port = 13345
+
+save_directory = "./client/client_files"
 
 def send_file(file_name):
     file_path = os.path.join(save_directory, file_name)

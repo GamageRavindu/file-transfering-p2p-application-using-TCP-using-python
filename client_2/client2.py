@@ -6,7 +6,7 @@ import base64
 host = 'localhost'
 port = 12345
 
-save_directory = "client_2/client_files"
+save_directory = "./client_2/client_files"
 
 def send_file(file_name):
     file_path = os.path.join(save_directory, file_name)
@@ -69,7 +69,6 @@ def request_file(file_name):
         client_socket.sendall(json.dumps(action_message).encode('utf-8') + b"\n")
 
         file_path = os.path.join(save_directory, file_name)
-        print(f"Receiving file '{file_name}' from server... ")
         with open(file_path, "wb") as fo:
             buffer = ""
             while True:
@@ -90,7 +89,7 @@ def request_file(file_name):
 
                     file_data = base64.b64decode(message["file_data"])
                     fo.write(file_data)
-
+        print(f"Receiving file '{file_name}' from server... ")
     except Exception as e:
         print(f"Error receiving file: {e}")
     finally:
@@ -166,6 +165,7 @@ if __name__ == "__main__":
         print("1. Upload a file to the server")
         print("2. Download a file from the server")
         print("3. view available files in the server.")
+        
         choice = input("Enter choice (1 , 2 or 3): ")
 
         if choice == "1":
