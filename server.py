@@ -7,11 +7,11 @@ import base64
 # Configure server host and port
 # serverHost = socket.gethostbyname(socket.gethostname())
 serverHost = 'localhost'
-serverPort = 12345
+serverPort = 13345
 bufferSize = 4096
 
 # Directory to store received files
-save_directory = "./server/server_files"
+save_directory = "./server_files"
 if not os.path.exists(save_directory):
     os.makedirs(save_directory)
 

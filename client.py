@@ -3,12 +3,13 @@ import os
 import json
 import base64
 
-host = '192.168.249.150'
+# host = '192.168.249.150'
+host = 'localhost'
 # host = socket.gethostbyname(socket.gethostname())
 
 port = 13345
 
-save_directory = "./client/client_files"
+save_directory = "./client_files"
 
 def send_file(file_name):
     file_path = os.path.join(save_directory, file_name)
@@ -58,6 +59,7 @@ def send_file(file_name):
 
     finally:
         client_socket.close()
+        print("returning to main menu...\n")
 
 def request_file(file_name):
     try:
@@ -95,8 +97,10 @@ def request_file(file_name):
 
     except Exception as e:
         print(f"Error receiving file: {e}")
+
     finally:
         client_socket.close()
+        print("\nreturning to main menu...\n")
 
 def view_files_list():
     try:
@@ -139,19 +143,18 @@ def view_files_list():
                         print("\nAvailable files list on the server: ")
                         for file in files_list:
                             print(f"- {file}")
-                        print("\nreturning to main menu...\n")
                         break
                     else:
                         print("No files available on the server.")
-                        print("returning to main menu...")
                 return  #exit
 
 
     except Exception as e:
         print(f"Error receiving list: {e}")
-        print("\nreturning to main menu...")
+    
     finally:
         client_socket.close()
+        print("\nreturning to main menu...\n")
 
 
 
@@ -168,7 +171,8 @@ if __name__ == "__main__":
         print("1. Upload a file to the server")
         print("2. Download a file from the server")
         print("3. view available files in the server.")
-        choice = input("Enter choice (1 , 2 or 3): ")
+        print("4. exit.")
+        choice = input("Enter choice (1 , 2, 3 or 4): ")
 
         if choice == "1":
             print("\n============================================")
@@ -180,7 +184,7 @@ if __name__ == "__main__":
                     print(f"- {file}")
             else:
                 print("No files exist to upload.")
-                print("returning to main menu...")
+                
                 continue
 
             file_name = input("\nEnter filename you want to send: ")
@@ -191,7 +195,7 @@ if __name__ == "__main__":
                 continue
             else:
                 print(f"\n'{file_name}' file does not exist.")
-                print("\nreturning to main menu...")
+                print("\nreturning to main menu...\n")
                 continue
         elif choice == "2":
             print("\n============================================")
@@ -199,14 +203,16 @@ if __name__ == "__main__":
             view_files_list()
             file_name = input("Enter the file name to request from server: ")
             request_file(file_name)
-            print("\nreturning to main menu...")
             continue
 
         elif choice == "3":
             view_files_list()
             continue
 
+        elif choice == "4":
+            break
+
         else:
             print("Invalid choice.")
-            print("\nreturning to main menu...")
+            print("\nreturning to main menu...\n")
             continue
