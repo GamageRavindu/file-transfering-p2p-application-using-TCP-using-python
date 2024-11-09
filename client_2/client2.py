@@ -3,6 +3,7 @@ import os
 import json
 import base64
 
+# host = '192.168.249.150'
 host = 'localhost'
 port = 13345
 
@@ -10,12 +11,13 @@ save_directory = "./client_files"
 
 def send_file(file_name):
     file_path = os.path.join(save_directory, file_name)
-    # file_path = os.path.join(save_directory, file_name)
+
     try:  
-        # Establish the connection to the server
+        # establish the connection to the server
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((host, port))
 
+        #let the server know  client is sending a file to the server
         action_message = {
            "action": "send",
            "file_name": file_name
@@ -23,10 +25,11 @@ def send_file(file_name):
         client_socket.sendall(json.dumps(action_message).encode('utf-8')+ b"\n")
 
         print(f"Sending file '{file_name}' to server... ")
-        with open(file_path, 'rb') as fi:  # Open file in binary mode
+
+        with open(file_path, 'rb') as fi:  # open file in binary mode
             chunk_index = 0
             while True:
-                file_data = fi.read(1024)  # Read data in chunks
+                file_data = fi.read(1024)  # read data in chunks
                 if not file_data:
                     break #if not more data to read file transfer is complete
                 
@@ -50,54 +53,62 @@ def send_file(file_name):
         client_socket.sendall(json.dumps(end_file_flag).encode('utf-8') + b"\n")
         print(f"File '{file_name}' sent successfully.")
 
-
     except Exception as e:
         print(f"Error sending file: {e}")
 
     finally:
         client_socket.close()
-        print("returning to main menu...\n")
 
 def request_file(file_name):
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((host, port))
 
+        # let the server know the client is requesting a file
         action_message = {
             "action": "request",
             "file_name": file_name
         }
         client_socket.sendall(json.dumps(action_message).encode('utf-8') + b"\n")
+        
+        #to check whether the file exist
+        initial_response = client_socket.recv(1024).decode()
+        status_message = json.loads(initial_response.strip())
 
-        file_path = os.path.join(save_directory, file_name)
-        print(f"Receiving file '{file_name}' from server... ")
-        with open(file_path, "wb") as fo:
-            buffer = ""
-            while True:
-                response = client_socket.recv(1024)
-                if not response:
-                    break
-
-                # Accumulate buffer until newline is found
-                buffer += response.decode()
-                while '\n' in buffer:
-                    line, buffer = buffer.split('\n', 1)
-                    message = json.loads(line.strip())
-
-                    if message.get("status") == "end_transfer":
-                        print(f"File '{file_name}' received successfully.")
-                        # return
+        if status_message.get("status") == "error_404":
+            print(f"File '{file_name}' not found on the server.")
+            return
+        
+        elif status_message.get("status") == "file_exists":
+            file_path = os.path.join(save_directory, file_name)
+            print(f"Receiving file '{file_name}' from server... ")
+            with open(file_path, "wb") as fo:
+                buffer = ""
+                while True:
+                    response = client_socket.recv(1024)
+                    if not response:
                         break
 
-                    file_data = base64.b64decode(message["file_data"])
-                    fo.write(file_data)
+                    #accumulate buffer until newline is found
+                    buffer += response.decode()
+
+                    while '\n' in buffer:
+                        line, buffer = buffer.split('\n', 1)
+                        message = json.loads(line.strip())
+
+                        if message.get("status") == "end_transfer":
+                            print(f"File '{file_name}' received successfully.")
+                            # return
+                            break
+
+                        file_data = base64.b64decode(message["file_data"])
+                        fo.write(file_data)
 
     except Exception as e:
         print(f"Error receiving file: {e}")
 
     finally:
         client_socket.close()
-        print("\nreturning to main menu...\n")
 
 def view_files_list():
     try:
@@ -139,22 +150,17 @@ def view_files_list():
                     if files_list:
                         print("\nAvailable files list on the server: ")
                         for file in files_list:
-                            print(f"- {file}")
+                            print(f"  - {file}")
                         break
                     else:
                         print("No files available on the server.")
                 return  #exit
-
 
     except Exception as e:
         print(f"Error receiving list: {e}")
     
     finally:
         client_socket.close()
-        print("\nreturning to main menu...\n")
-
-
-
 
 if __name__ == "__main__":
     if not os.path.exists(save_directory):
@@ -178,10 +184,10 @@ if __name__ == "__main__":
             if available_client_files:
                 print("Available files to upload:")
                 for file in available_client_files:
-                    print(f"- {file}")
+                    print(f"  - {file}")
             else:
-                print("No files exist to upload.")
-                
+                print("No files exist to upload.") 
+                print("\nreturning to main menu...\n") 
                 continue
 
             file_name = input("\nEnter filename you want to send: ")
@@ -194,21 +200,25 @@ if __name__ == "__main__":
                 print(f"\n'{file_name}' file does not exist.")
                 print("\nreturning to main menu...\n")
                 continue
+
         elif choice == "2":
             print("\n============================================")
             print("\n          DOWNLOADING CENTER\n")
             view_files_list()
-            file_name = input("Enter the file name to request from server: ")
+            file_name = input("\nEnter the file name to request from server: ")
             request_file(file_name)
+            print("\nreturning to main menu...\n")
             continue
 
         elif choice == "3":
             view_files_list()
+            print("\nreturning to main menu...\n")
             continue
 
         elif choice == "4":
+            print("\nShutting down the application...\n")
             break
-        
+
         else:
             print("Invalid choice.")
             print("\nreturning to main menu...\n")
